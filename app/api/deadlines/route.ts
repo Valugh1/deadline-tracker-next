@@ -6,16 +6,15 @@ export async function GET() {
   try {
     const { rows } = await sql`SELECT * FROM deadlines ORDER BY date ASC;`;
 
-    rows.forEach(row => {
-        if (row.id === 5) {
-            console.log(row.date);
-        }
-    });
+    // rows.forEach(row => {
+    //     if (row.id === 5) {
+    //         console.log(row.date);
+    //     }
+    // });
 
     return NextResponse.json(
       rows.map(row => ({
         ...row,
-        //date: row.date ? new Date(row.date).toISOString().split('T')[0] : null,
         daysBefore: row.days_before
       }))
     );

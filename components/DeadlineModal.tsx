@@ -18,9 +18,14 @@ export default function DeadlineModal({ isOpen, onClose, onSave, editingDeadline
 
   // Reset o Popolamento campi
   useEffect(() => {
+    
     if (editingDeadline) {
       setTitle(editingDeadline.title);
-      setDate(editingDeadline.date);
+      const d = new Date(editingDeadline.date);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      setDate(`${y}-${m}-${day}`);
       setDaysBefore(editingDeadline.daysBefore);
       setType(editingDeadline.type);
     } else {

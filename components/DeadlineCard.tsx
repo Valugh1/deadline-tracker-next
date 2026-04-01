@@ -19,7 +19,6 @@ interface DeadlineCardProps {
 }
 
 export default function DeadlineCard({ deadline, onEdit, onDelete }: DeadlineCardProps) {
-  
   // Calcolo dei giorni rimanenti e dello stato di urgenza (Logica v1.1.0)
   const today = new Date();
   today.setHours(0, 0, 0, 0);

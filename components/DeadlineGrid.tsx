@@ -7,9 +7,11 @@ interface DeadlineGridProps {
   deadlines: Deadline[];
   onRefresh: () => void;
   onEdit: (deadline: Deadline) => void;
+  onInfo: (deadline: Deadline) => void;
+
 }
 
-export default function DeadlineGrid({ deadlines, onRefresh, onEdit }: DeadlineGridProps) {
+export default function DeadlineGrid({ deadlines, onRefresh, onEdit, onInfo }: DeadlineGridProps) {
   // Stato per decidere quale tab visualizzare
   const [activeView, setActiveView] = useState<'long-term' | 'daily'>('long-term');
 
@@ -28,6 +30,8 @@ export default function DeadlineGrid({ deadlines, onRefresh, onEdit }: DeadlineG
       }
     }
   };
+
+  
 
   // Filtriamo le scadenze in base al tipo selezionato nello switch
   const filteredDeadlines = deadlines.filter(d => d.type === activeView);
@@ -83,6 +87,7 @@ export default function DeadlineGrid({ deadlines, onRefresh, onEdit }: DeadlineG
             deadline={d} 
             onDelete={handleDelete}
             onEdit={onEdit}
+            onInfo={onInfo}
           />
         ))}
 

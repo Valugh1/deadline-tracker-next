@@ -11,6 +11,7 @@ export interface Deadline {
   notified: boolean;
   type: "long-term" | "daily"; // Aggiunto per il supporto alla doppia logica
   notes: string;
+  notificationTime?: string;
 }
 
 interface DeadlineCardProps {
@@ -43,24 +44,25 @@ export default function DeadlineCard({
   let statusColor = "bg-white/95"; // Default
   let textColor = "text-ios-gray";
   let daysLeftText = "";
-
-  if (diffDays < 0) {
-    statusColor = "bg-red-50/95"; // Scaduta (Rosso Apple sfocato)
-    daysLeftText = "Scaduta";
-    textColor = "text-ios-red";
-  } else if (diffDays === 0) {
-    statusColor = "bg-red-50/95"; // Oggi
-    daysLeftText = "Oggi!";
-    textColor = "text-ios-red";
-  } else if (today >= notificationDate) {
-    statusColor = "bg-amber-50/95"; // Preavviso attivo (Giallo morbido)
-    daysLeftText =
-      diffDays === 1 ? "1 giorno rimasto" : `${diffDays} giorni rimasti`;
-    textColor = "text-amber-700";
-  } else {
-    daysLeftText =
-      diffDays === 1 ? "1 giorno rimasto" : `${diffDays} giorni rimasti`;
-    textColor = "text-ios-gray";
+  if (deadline.type !== "daily") {
+    if (diffDays < 0) {
+      statusColor = "bg-red-50/95"; // Scaduta (Rosso Apple sfocato)
+      daysLeftText = "Scaduta";
+      textColor = "text-ios-red";
+    } else if (diffDays === 0) {
+      statusColor = "bg-red-50/95"; // Oggi
+      daysLeftText = "Oggi!";
+      textColor = "text-ios-red";
+    } else if (today >= notificationDate) {
+      statusColor = "bg-amber-50/95"; // Preavviso attivo (Giallo morbido)
+      daysLeftText =
+        diffDays === 1 ? "1 giorno rimasto" : `${diffDays} giorni rimasti`;
+      textColor = "text-amber-700";
+    } else {
+      daysLeftText =
+        diffDays === 1 ? "1 giorno rimasto" : `${diffDays} giorni rimasti`;
+      textColor = "text-ios-gray";
+    }
   }
 
   return (
@@ -78,29 +80,61 @@ export default function DeadlineCard({
         </h4>
       </div>
 
-      {/* 2. BODY (Data e Giorni) */}
+      {/* 2. BODY (Data/Orario e Badge) */}
       <div className="flex items-end justify-between gap-4 mt-auto">
-        <div className="flex flex-col">
-          <p className="text-ios-gray font-semibold text-xs mb-1">Scade il:</p>
-          <div className="flex items-center gap-2">
-            {/* Icona Calendario Semplice */}
-            <span className="text-xl">📅</span>
-            <p className="text-xl font-extrabold text-black/80 tracking-tight">
-              {new Date(deadline.date).toLocaleDateString("it-IT", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })}
+        {deadline.type === "daily" ? (
+          /* --- VISTA GIORNALIERA --- */
+          <div className="flex flex-col animate-in fade-in duration-500">
+            <p className="text-ios-blue font-bold text-[10px] uppercase tracking-wider mb-1">
+              Ogni giorno alle:
             </p>
+            <div className="flex items-center gap-2 text-ios-blue">
+              <span className="text-xl">⏰</span>
+              <p className="text-2xl font-black tracking-tight">
+                {deadline.notificationTime?.slice(0, 5) || "08:00"}
+              </p>
+            </div>
           </div>
-        </div>
+        ) : (
+          /* --- VISTA SCADENZA STANDARD --- */
+          <div className="flex flex-col">
+            <p className="text-ios-gray font-semibold text-xs mb-1">
+              Scade il:
+            </p>
+            <div className="flex items-center gap-2">
+              <span className="text-xl">📅</span>
+              <p className="text-xl font-extrabold text-black/80 tracking-tight">
+                {new Date(deadline.date).toLocaleDateString("it-IT", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </p>
+            </div>
+          </div>
+        )}
 
-        {/* Badge Giorni Rimanenti */}
-        <div
-          className={`px-4 py-1.5 rounded-full text-sm font-bold shadow-sm ${statusColor === "bg-red-50/95" ? "bg-ios-red/10" : statusColor === "bg-amber-50/95" ? "bg-amber-100" : "bg-gray-100"} ${textColor}`}
-        >
-          {daysLeftText}
-        </div>
+        {/* Badge Dinamico: lo mostriamo solo se NON è giornaliero */}
+        {deadline.type !== "daily" && (
+          <div
+            className={`px-4 py-1.5 rounded-full text-sm font-bold shadow-sm ${
+              statusColor === "bg-red-50/95"
+                ? "bg-ios-red/10"
+                : statusColor === "bg-amber-50/95"
+                  ? "bg-amber-100"
+                  : "bg-gray-100"
+            } ${textColor}`}
+          >
+            {daysLeftText}
+          </div>
+        )}
+
+        {/* Se vuoi un badge anche per le giornaliere, potresti metterne uno "Attivo" */}
+        {deadline.type === "daily" && (
+          <div className="px-4 py-1.5 rounded-full text-sm font-bold bg-blue-50 text-ios-blue shadow-sm">
+            Routine
+          </div>
+        )}
       </div>
 
       {/* 3. AZIONI (Pulsanti che appaiono all'hover) */}
@@ -139,7 +173,12 @@ export default function DeadlineCard({
           className="bg-white/90 p-3 rounded-full shadow-lg border border-gray-100 text-ios-gray hover:bg-ios-red hover:text-white hover:scale-110 active:scale-95 transition-all"
           title="Elimina"
         >
-          <Image src="/icons8-rimuovere.svg" alt="Logo" width={20} height={20} />
+          <Image
+            src="/icons8-rimuovere.svg"
+            alt="Logo"
+            width={20}
+            height={20}
+          />
         </button>
       </div>
     </div>

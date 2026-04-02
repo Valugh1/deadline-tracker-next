@@ -15,7 +15,8 @@ export async function GET() {
     return NextResponse.json(
       rows.map(row => ({
         ...row,
-        daysBefore: row.days_before
+        daysBefore: row.days_before,
+        notificationTime: row.notification_time
       }))
     );
   } catch (error) {
@@ -26,12 +27,12 @@ export async function GET() {
 
 // SALVA nuova scadenza
 export async function POST(request: Request) {
-  const { title, date, daysBefore, type, notes } = await request.json();
+  const { title, date, daysBefore, type, notes,notificationTime } = await request.json();
   
   try {
     await sql`
-      INSERT INTO deadlines (title, date, days_before, type, notes)
-      VALUES (${title}, ${date}::date, ${daysBefore}, ${type}, ${notes});
+      INSERT INTO deadlines (title, date, days_before, type, notes, notification_time)
+      VALUES (${title}, ${date ||"9999-01-01"}::date, ${daysBefore}, ${type}, ${notes || ""}, ${notificationTime || "08:00"});
     `;
     return NextResponse.json({ message: "Scadenza salvata" }, { status: 201 });
   } catch (error) {
@@ -55,7 +56,7 @@ export async function DELETE(request: Request) {
 // AGGIORNA una scadenza esistente
 export async function PUT(request: Request) {
 
-    const { id, title, date, daysBefore, type, notes } = await request.json();
+    const { id, title, date, daysBefore, type, notes, notficationTime } = await request.json();
     try {
         // Aggiornamento nel database Postgres basato sull'ID
         const result = await sql`
@@ -64,7 +65,8 @@ export async function PUT(request: Request) {
             date = ${date}, 
             days_before = ${daysBefore}, 
             type = ${type},
-            notes = ${notes}
+            notes = ${notes},
+            notification_time = ${notficationTime}
         WHERE id = ${id}
         RETURNING *; -- Ci restituisce la riga aggiornata per conferma
         `;

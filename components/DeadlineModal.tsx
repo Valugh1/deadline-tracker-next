@@ -21,6 +21,7 @@ export default function DeadlineModal({
   const [daysBefore, setDaysBefore] = useState(1);
   const [type, setType] = useState<"long-term" | "daily">("long-term");
   const [notes, setNotes] = useState("");
+  const [notificationTime, setNotificationTime] = useState("08:00");
 
   // Reset o Popolamento campi
   useEffect(() => {
@@ -46,6 +47,7 @@ export default function DeadlineModal({
 
   const today = new Date().toISOString().split("T")[0];
 
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave({
@@ -53,7 +55,7 @@ export default function DeadlineModal({
       date,
       daysBefore: Number(daysBefore),
       type,
-      notes
+      notes,
     });
     onClose();
   };
@@ -118,48 +120,62 @@ export default function DeadlineModal({
                 className="w-full bg-gray-50 border-2 border-transparent rounded-2xl p-5 focus:bg-white focus:border-ios-blue outline-none transition-all text-lg font-medium text-black placeholder:text-gray-300"
               />
             </div>
-
+            {/* RIQUADRO SOTTOSTANTE IL TITOLO DELLA SCADENZA */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* CAMPO DATA */}
-              <div className="space-y-2">
-                <label className="block text-[11px] font-bold text-ios-label-gray uppercase ml-4 tracking-[0.2em]">
-                  Data
-                </label>
-                <input
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  type="date"
-                  required
-                  min={today}
-                  className="w-full bg-gray-50 border-2 border-transparent rounded-2xl p-5 focus:bg-white focus:border-ios-blue outline-none transition-all text-black font-medium"
-                />
-              </div>
+              {type == "long-term" ? (
+                <div className="space-y-2">
+                  <label className="block text-[11px] font-bold text-ios-label-gray uppercase ml-4 tracking-[0.2em]">
+                    Data
+                  </label>
+                  <input
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    type="date"
+                    required
+                    min={today}
+                    className="w-full bg-gray-50 border-2 border-transparent rounded-2xl p-5 focus:bg-white focus:border-ios-blue outline-none transition-all text-black font-medium"
+                  />
+                </div>
+              ) : (
+                ""
+              )}
 
               {/* CAMPO PREAVVISO (Solo se non è daily, o sempre visibile) */}
-              <div className="space-y-2">
-                <label className="block text-[11px] font-bold text-ios-label-gray uppercase ml-4 tracking-[0.2em]">
-                  Preavviso
-                </label>
-                <div className="relative">
-                  <select
-                    value={daysBefore}
-                    onChange={(e) => setDaysBefore(Number(e.target.value))}
-                    disabled={type === "daily"}
-                    className={`w-full bg-gray-50 border-2 border-transparent rounded-2xl p-5 focus:bg-white focus:border-ios-blue outline-none transition-all text-black font-medium appearance-none cursor-pointer ${type === "daily" ? "opacity-50 cursor-not-allowed" : ""}`}
-                  >
-                    <option value={0}>Lo stesso giorno</option>
-                    <option value={1}>1 giorno prima</option>
-                    <option value={3}>3 giorni prima</option>
-                    <option value={7}>1 settimana prima</option>
-                    <option value={30}>1 mese prima</option>
-                  </select>
-                  <span className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                    ▼
-                  </span>
-                </div>
+              <div className={`space-y-4 ${type === "daily" ? "md:col-span-2" : ""}`}>
+                {type === "long-term" ? (
+                  /* SEZIONE PREAVVISO (Solo per scadenze a lungo termine) */
+                  <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                    <label className="block text-[11px] font-bold text-ios-label-gray uppercase ml-4 tracking-[0.2em]">
+                      Preavviso Notifica
+                    </label>
+                    <select
+                      value={daysBefore}
+                      onChange={(e) => setDaysBefore(Number(e.target.value))}
+                      className="w-full bg-gray-50 border-2 border-transparent rounded-2xl p-5 outline-none text-black font-medium"
+                    >
+                      <option value={1}>1 giorno prima</option>
+                      <option value={3}>3 giorni prima</option>
+                      <option value={7}>1 settimana prima</option>
+                    </select>
+                  </div>
+                ) : (
+                  /* SEZIONE ORARIO (Solo per scadenze giornaliere) */
+                  <div className="space-y-2 col-span-2 animate-in fade-in slide-in-from-top-2">
+                    <label className="block text-[11px] font-bold text-ios-label-gray uppercase ml-4 tracking-[0.2em]">
+                      Orario Notifica
+                    </label>
+                    <input
+                      type="time"
+                      value={notificationTime}
+                      onChange={(e) => setNotificationTime(e.target.value)}
+                      className="w-full bg-gray-50 border-2 border-transparent rounded-2xl p-5 outline-none text-black font-medium focus:bg-white focus:border-ios-blue transition-all"
+                    />
+                  </div>
+                )}
               </div>
               {/*CAMPO NOTE*/}
-              <div className="space-y-2">
+              <div className="space-y-2 col-span-2">
                 <label className="block text-[11px] font-bold text-ios-label-gray uppercase ml-4 tracking-[0.2em]">
                   Note
                 </label>

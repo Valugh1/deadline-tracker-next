@@ -24,24 +24,37 @@ export default function DeadlineModal({
   const [notificationTime, setNotificationTime] = useState("08:00");
 
   // Reset o Popolamento campi
-  useEffect(() => {
-    if (editingDeadline) {
-      setTitle(editingDeadline.title);
+  // Reset o Popolamento campi in DeadlineModal.tsx
+useEffect(() => {
+  if (editingDeadline) {
+    setTitle(editingDeadline.title || "");
+    setNotes(editingDeadline.notes || "");
+    setNotificationTime(editingDeadline.notificationTime || "08:00");
+    setType(editingDeadline.type || "long-term");
+
+    // GESTIONE DATA: Solo se stiamo modificando una scadenza esistente (ha un ID)
+    if (editingDeadline.id && editingDeadline.date) {
       const d = new Date(editingDeadline.date);
       const y = d.getFullYear();
       const m = String(d.getMonth() + 1).padStart(2, "0");
       const day = String(d.getDate()).padStart(2, "0");
       setDate(`${y}-${m}-${day}`);
       setDaysBefore(editingDeadline.daysBefore);
-      setType(editingDeadline.type);
-      setNotes(editingDeadline.notes || "");
     } else {
-      setTitle("");
-      setDate("");
-      setDaysBefore(1);
-      setType("long-term");
+      // È UNA NUOVA CREAZIONE: Usiamo i valori passati nel template
+      setDate(editingDeadline.date || ""); 
+      setDaysBefore(editingDeadline.daysBefore || 1);
     }
-  }, [editingDeadline, isOpen]);
+  } else {
+    // RESET TOTALE (se editingDeadline è null)
+    setTitle("");
+    setDate("");
+    setDaysBefore(1);
+    setType("long-term");
+    setNotes("");
+    setNotificationTime("08:00");
+  }
+}, [editingDeadline, isOpen]);
 
   if (!isOpen) return null;
 
@@ -56,6 +69,7 @@ export default function DeadlineModal({
       daysBefore: Number(daysBefore),
       type,
       notes,
+      notificationTime
     });
     onClose();
   };
@@ -94,14 +108,14 @@ export default function DeadlineModal({
                   onClick={() => setType("long-term")}
                   className={`flex-1 py-3 text-sm font-bold z-10 transition-colors ${type === "long-term" ? "text-ios-blue" : "text-gray-400"}`}
                 >
-                  📅 Lungo Termine
+                  📅 Lungo Termine 
                 </button>
                 <button
                   type="button"
                   onClick={() => setType("daily")}
                   className={`flex-1 py-3 text-sm font-bold z-10 transition-colors ${type === "daily" ? "text-ios-blue" : "text-gray-400"}`}
                 >
-                  ☀️ Giornaliera
+                  ☀️ Giornaliera {}
                 </button>
               </div>
             </div>

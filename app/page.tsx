@@ -15,8 +15,8 @@ export default function Home() {
   //MODALE dettaglio su deadline specifica
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [selectedDeadline, setSelectedDeadline] = useState<Deadline | null>(
-    null,
-  );
+    null,);
+  const [activeView, setActiveView] = useState<'long-term' | 'daily'>('long-term');
 
   const fetchDeadlines = async () => {
     try {
@@ -41,8 +41,16 @@ export default function Home() {
 
   // Apre la modale per la CREAZIONE
   const handleOpenCreateModal = () => {
-    setEditingDeadline(null); // Reset dello stato di editing
-    setIsModalOpen(true);
+    setEditingDeadline({
+    type: activeView, // Se sei su 'daily', la modale nascerà come 'daily'
+    title: "",
+    date: activeView === 'daily' ? "9999-01-01" : "",
+    daysBefore: 1,
+    notes: "",
+    notificationTime: "08:00"
+  } as Deadline);
+  console.log("📍 Tab attiva al momento del click:", activeView);
+      setIsModalOpen(true);
   };
 
   // Apre la modale per la MODIFICA
@@ -59,6 +67,7 @@ export default function Home() {
 
   // Funzione unificata per SALVARE (Crea o Aggiorna)
   const handleSave = async (formData: Partial<Deadline>) => {
+    
     console.log("dati inviati:", {
       ...formData,
       _type: typeof formData,
@@ -153,6 +162,8 @@ export default function Home() {
           onRefresh={fetchDeadlines}
           onEdit={handleOpenEditModal}
           onInfo={handleOpenInfo}
+          activeView={activeView}
+          onActiveViewChange={setActiveView}
         />
       </div>
 

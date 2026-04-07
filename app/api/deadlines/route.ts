@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 // LEGGI le scadenze
 export async function GET() {
   try {
-    const { rows } = await sql`SELECT * FROM deadlines ORDER BY date ASC;`;
+    const { rows } = await sql`SELECT * FROM deadlines ORDER BY is_done ASC, date ASC, id DESC`;
 
     // rows.forEach(row => {
     //     if (row.id === 5) {
@@ -16,7 +16,8 @@ export async function GET() {
       rows.map(row => ({
         ...row,
         daysBefore: row.days_before,
-        notificationTime: row.notification_time
+        notificationTime: row.notification_time,
+        isDone: row.is_done
       }))
     );
   } catch (error) {
@@ -27,12 +28,12 @@ export async function GET() {
 
 // SALVA nuova scadenza
 export async function POST(request: Request) {
-  const { title, date, daysBefore, type, notes,notificationTime } = await request.json();
-  
+  const { title, date, daysBefore, type, notes,notificationTime,isDone } = await request.json();
+  console.log(notificationTime)
   try {
     await sql`
-      INSERT INTO deadlines (title, date, days_before, type, notes, notification_time)
-      VALUES (${title}, ${date ||"9999-01-01"}::date, ${daysBefore}, ${type}, ${notes || ""}, ${notificationTime || "08:00"});
+      INSERT INTO deadlines (title, date, days_before, type, notes, notification_time, is_done)
+      VALUES (${title}, ${date ||"9999-01-01"}::date, ${daysBefore}, ${type}, ${notes || ""}, ${notificationTime || "08:00"}, ${isDone || false});
     `;
     return NextResponse.json({ message: "Scadenza salvata" }, { status: 201 });
   } catch (error) {
@@ -56,7 +57,8 @@ export async function DELETE(request: Request) {
 // AGGIORNA una scadenza esistente
 export async function PUT(request: Request) {
 
-    const { id, title, date, daysBefore, type, notes, notficationTime } = await request.json();
+    const { id, title, date, daysBefore, type, notes, notificationTime } = await request.json();
+    console.log(notificationTime)
     try {
         // Aggiornamento nel database Postgres basato sull'ID
         const result = await sql`
@@ -66,7 +68,7 @@ export async function PUT(request: Request) {
             days_before = ${daysBefore}, 
             type = ${type},
             notes = ${notes},
-            notification_time = ${notficationTime}
+            notification_time = ${notificationTime}
         WHERE id = ${id}
         RETURNING *; -- Ci restituisce la riga aggiornata per conferma
         `;
@@ -81,3 +83,5 @@ export async function PUT(request: Request) {
         return NextResponse.json({ error }, { status: 500 });
     }
 }
+
+

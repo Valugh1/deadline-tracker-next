@@ -8,13 +8,18 @@ interface DeadlineGridProps {
   onRefresh: () => void;
   onEdit: (deadline: Deadline) => void;
   onInfo: (deadline: Deadline) => void;
+  activeView: 'long-term' | 'daily';
+  onActiveViewChange: (view: 'long-term' | 'daily') => void;
 
 }
 
-export default function DeadlineGrid({ deadlines, onRefresh, onEdit, onInfo }: DeadlineGridProps) {
-  // Stato per decidere quale tab visualizzare
-  const [activeView, setActiveView] = useState<'long-term' | 'daily'>('long-term');
-
+export default function DeadlineGrid({ deadlines,
+   onRefresh,
+    onEdit,
+     onInfo,
+     activeView,
+     onActiveViewChange
+     }: DeadlineGridProps) {
   // Funzione per eliminare una scadenza dal database
   const handleDelete = async (id: number) => {
     if (confirm("Vuoi eliminare questa scadenza definitivamente?")) {
@@ -50,7 +55,7 @@ export default function DeadlineGrid({ deadlines, onRefresh, onEdit, onInfo }: D
           />
           
           <button
-            onClick={() => setActiveView('long-term')}
+            onClick={() => onActiveViewChange('long-term')}
             className={`flex-1 py-3 text-sm font-bold z-10 transition-colors duration-200 ${
               activeView === 'long-term' ? 'text-ios-blue' : 'text-gray-500'
             }`}
@@ -59,7 +64,7 @@ export default function DeadlineGrid({ deadlines, onRefresh, onEdit, onInfo }: D
           </button>
           
           <button
-            onClick={() => setActiveView('daily')}
+            onClick={() => onActiveViewChange('daily')}
             className={`flex-1 py-3 text-sm font-bold z-10 transition-colors duration-200 ${
               activeView === 'daily' ? 'text-ios-blue' : 'text-gray-500'
             }`}
@@ -88,6 +93,7 @@ export default function DeadlineGrid({ deadlines, onRefresh, onEdit, onInfo }: D
             onDelete={handleDelete}
             onEdit={onEdit}
             onInfo={onInfo}
+            onRefresh={onRefresh}
           />
         ))}
 

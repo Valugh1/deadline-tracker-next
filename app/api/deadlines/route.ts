@@ -1,16 +1,26 @@
 import { sql } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth/server';
+
+// Helper to get current user or return 401
+async function getCurrentUserId() {
+  const { data: session } = await auth.getSession();
+  const userId = session?.user?.id ?? null;
+  if (!userId) return null;
+  return userId;
+}
 
 // LEGGI le scadenze
 export async function GET() {
-  try {
-    const { rows } = await sql`SELECT * FROM deadlines ORDER BY date ASC;`;
+  const userId = await getCurrentUserId();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // rows.forEach(row => {
-    //     if (row.id === 5) {
-    //         console.log(row.date);
-    //     }
-    // });
+  try {
+    const { rows } = await sql`
+      SELECT * FROM deadlines 
+      WHERE user_id = ${userId}
+      ORDER BY date ASC;
+    `;
 
     return NextResponse.json(
       rows.map(row => ({
@@ -27,57 +37,73 @@ export async function GET() {
 
 // SALVA nuova scadenza
 export async function POST(request: Request) {
-  const { title, date, daysBefore, type, notes,notificationTime } = await request.json();
+  // ✅ Read body FIRST before calling getCurrentUserId
+  const body = await request.json();
   
+  const userId = await getCurrentUserId();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const { title, date, daysBefore, type, notes, notificationTime } = body;
+
   try {
     await sql`
-      INSERT INTO deadlines (title, date, days_before, type, notes, notification_time)
-      VALUES (${title}, ${date ||"9999-01-01"}::date, ${daysBefore}, ${type}, ${notes || ""}, ${notificationTime || "08:00"});
+      INSERT INTO deadlines (user_id, title, date, days_before, "type", notes, notification_time)
+      VALUES (${userId}, ${title}, ${date || "9999-01-01"}::date, ${daysBefore}, ${type}, ${notes || ""}, ${notificationTime || "08:00"});
     `;
     return NextResponse.json({ message: "Scadenza salvata" }, { status: 201 });
   } catch (error) {
     console.error("Errore SQL POST:", error);
-    return NextResponse.json({ error }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
 
 // ELIMINA scadenza
 export async function DELETE(request: Request) {
+  // ✅ Read URL params first (safe, doesn't consume body)
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
+
+  const userId = await getCurrentUserId();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   try {
-    await sql`DELETE FROM deadlines WHERE id = ${id};`;
+    await sql`DELETE FROM deadlines WHERE id = ${id} AND user_id = ${userId};`;
     return NextResponse.json({ message: "Eliminata!" });
   } catch (error) {
-    return NextResponse.json({ error }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
 
 // AGGIORNA una scadenza esistente
 export async function PUT(request: Request) {
+  // ✅ Read body FIRST before calling getCurrentUserId
+  const body = await request.json();
 
-    const { id, title, date, daysBefore, type, notes, notficationTime } = await request.json();
-    try {
-        // Aggiornamento nel database Postgres basato sull'ID
-        const result = await sql`
-        UPDATE deadlines
-        SET title = ${title}, 
-            date = ${date}, 
-            days_before = ${daysBefore}, 
-            type = ${type},
-            notes = ${notes},
-            notification_time = ${notficationTime}
-        WHERE id = ${id}
-        RETURNING *; -- Ci restituisce la riga aggiornata per conferma
-        `;
+  const userId = await getCurrentUserId();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        if (result.rowCount === 0) {
-        return NextResponse.json({ error: "Scadenza non trovata" }, { status: 404 });
-        }
-        
-        return NextResponse.json({ message: "Aggiornata!", deadline: result.rows[0] });
-    } catch (error) {
-        console.error("Errore nell'aggiornamento API:", error);
-        return NextResponse.json({ error }, { status: 500 });
+  const { id, title, date, daysBefore, type, notes, notificationTime } = body;
+
+  try {
+    const result = await sql`
+      UPDATE deadlines
+      SET title = ${title}, 
+          date = ${date}, 
+          days_before = ${daysBefore}, 
+          "type" = ${type},
+          notes = ${notes},
+          notification_time = ${notificationTime}
+      WHERE id = ${id} AND user_id = ${userId}
+      RETURNING *;
+    `;
+
+    if (result.rowCount === 0) {
+      return NextResponse.json({ error: "Scadenza non trovata" }, { status: 404 });
     }
+
+    return NextResponse.json({ message: "Aggiornata!", deadline: result.rows[0] });
+  } catch (error) {
+    console.error("Errore nell'aggiornamento API:", error);
+    return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
+  }
 }

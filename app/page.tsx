@@ -87,6 +87,7 @@ export default function Home() {
       if (response.ok) {
         handleCloseModal(); // Chiude e pulisce
         fetchDeadlines(); // Rinfresca la lista dal DB
+        console.log("Scadenza salvata con successo");
       } else {
         const errorData = await response.json();
         console.error("Errore nel salvataggio server:", errorData);

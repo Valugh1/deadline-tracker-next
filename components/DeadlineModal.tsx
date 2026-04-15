@@ -35,11 +35,14 @@ export default function DeadlineModal({
       setDaysBefore(editingDeadline.daysBefore);
       setType(editingDeadline.type);
       setNotes(editingDeadline.notes || "");
+      setNotificationTime(editingDeadline.notificationTime || "08:00");
     } else {
       setTitle("");
       setDate("");
       setDaysBefore(1);
       setType("long-term");
+      setNotes("");
+      setNotificationTime("08:00");
     }
   }, [editingDeadline, isOpen]);
 
@@ -48,17 +51,17 @@ export default function DeadlineModal({
   const today = new Date().toISOString().split("T")[0];
 
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave({
-      title,
-      date,
-      daysBefore: Number(daysBefore),
-      type,
-      notes,
-    });
-    onClose();
-  };
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  await onSave({
+    title,
+    date,
+    daysBefore: Number(daysBefore),
+    type,
+    notes,
+    notificationTime,
+  });
+};
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-xl bg-black/40 animate-in fade-in duration-300">

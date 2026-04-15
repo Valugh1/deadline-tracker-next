@@ -12,7 +12,6 @@ export interface Deadline {
   type: "long-term" | "daily"; // Aggiunto per il supporto alla doppia logica
   notes: string;
   notificationTime?: string;
-  isDone?: boolean
 }
 
 interface DeadlineCardProps {
@@ -20,7 +19,6 @@ interface DeadlineCardProps {
   onEdit: (deadline: Deadline) => void;
   onDelete: (id: number) => void;
   onInfo: (d: Deadline) => void;
-  onRefresh: () => void;
 }
 
 export default function DeadlineCard({
@@ -28,7 +26,6 @@ export default function DeadlineCard({
   onEdit,
   onDelete,
   onInfo,
-  onRefresh
 }: DeadlineCardProps) {
   // Calcolo dei giorni rimanenti e dello stato di urgenza (Logica v1.1.0)
   const today = new Date();
@@ -94,7 +91,7 @@ export default function DeadlineCard({
             <div className="flex items-center gap-2 text-ios-blue">
               <span className="text-xl">⏰</span>
               <p className="text-2xl font-black tracking-tight">
-                {deadline.notificationTime?.slice(0, 5)}
+                {deadline.notificationTime?.slice(0, 5) || "08:00"}
               </p>
             </div>
           </div>
@@ -117,7 +114,7 @@ export default function DeadlineCard({
           </div>
         )}
 
-        {/* Badge Lungo termine: lo mostriamo solo se NON è giornaliero */}
+        {/* Badge Dinamico: lo mostriamo solo se NON è giornaliero */}
         {deadline.type !== "daily" && (
           <div
             className={`px-4 py-1.5 rounded-full text-sm font-bold shadow-sm ${
@@ -132,34 +129,12 @@ export default function DeadlineCard({
           </div>
         )}
 
-        {/* Badge anche giornaliere, cliccato rende la scadenza "svolta" */}
+        {/* Se vuoi un badge anche per le giornaliere, potresti metterne uno "Attivo" */}
         {deadline.type === "daily" && (
-          <button
-            onClick={async (e) => {
-              e.stopPropagation(); // Evita di aprire la InfoModal
-              const newStatus = !deadline.isDone;
-              
-              // Chiamata rapida all'API
-              const response = await fetch('/api/deadlines/toggle-done', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: deadline.id, isDone: newStatus }),
-              });
-
-              if (response.ok) {
-                onRefresh(); // Ricarica i dati per vedere il cambiamento
-                console.log(deadline.title, " + ", deadline.id)
-              }
-            }}
-            className={`px-4 py-1.5 rounded-full text-sm font-bold shadow-sm transition-all active:scale-95 ${
-              deadline.isDone 
-                ? "bg-green-500 text-white" 
-                : "bg-blue-50 text-ios-blue hover:bg-blue-100"
-            }`}
-          >
-            {deadline.isDone ? "fatto" : "da fare"}
-          </button>
-)}
+          <div className="px-4 py-1.5 rounded-full text-sm font-bold bg-blue-50 text-ios-blue shadow-sm">
+            Routine
+          </div>
+        )}
       </div>
 
       {/* 3. AZIONI (Pulsanti che appaiono all'hover) */}

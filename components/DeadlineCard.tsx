@@ -1,15 +1,14 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 
-// Definiamo l'interfaccia basata su quella che abbiamo raffinato insieme
 export interface Deadline {
   id: number;
   title: string;
-  date: string; // Formato YYYY-MM-DD
+  date: string;
   daysBefore: number;
   notified: boolean;
-  type: "long-term" | "daily"; // Aggiunto per il supporto alla doppia logica
+  type: "long-term" | "daily";
   notes: string;
   notificationTime?: string;
 }
@@ -18,16 +17,10 @@ interface DeadlineCardProps {
   deadline: Deadline;
   onEdit: (deadline: Deadline) => void;
   onDelete: (id: number) => void;
-  onInfo: (d: Deadline) => void;
+  onInfo: (deadline: Deadline) => void;
 }
 
-export default function DeadlineCard({
-  deadline,
-  onEdit,
-  onDelete,
-  onInfo,
-}: DeadlineCardProps) {
-  // Calcolo dei giorni rimanenti e dello stato di urgenza (Logica v1.1.0)
+export default function DeadlineCard({ deadline, onEdit, onDelete, onInfo }: DeadlineCardProps) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const deadlineDate = new Date(deadline.date);
@@ -36,151 +29,76 @@ export default function DeadlineCard({
   const diffTime = deadlineDate.getTime() - today.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  // Logica di preavviso per il colore
   const notificationDate = new Date(deadlineDate);
   notificationDate.setDate(deadlineDate.getDate() - (deadline.daysBefore || 0));
 
-  // Determina lo stato e il colore della card
-  let statusColor = "bg-white/95"; // Default
-  let textColor = "text-ios-gray";
-  let daysLeftText = "";
+  let stateLabel = "";
+  let labelClass = "bg-slate-100 text-slate-700";
   if (deadline.type !== "daily") {
     if (diffDays < 0) {
-      statusColor = "bg-red-50/95"; // Scaduta (Rosso Apple sfocato)
-      daysLeftText = "Scaduta";
-      textColor = "text-ios-red";
+      stateLabel = "Scaduta";
+      labelClass = "bg-red-50 text-red-600";
     } else if (diffDays === 0) {
-      statusColor = "bg-red-50/95"; // Oggi
-      daysLeftText = "Oggi!";
-      textColor = "text-ios-red";
+      stateLabel = "Oggi";
+      labelClass = "bg-red-50 text-red-600";
     } else if (today >= notificationDate) {
-      statusColor = "bg-amber-50/95"; // Preavviso attivo (Giallo morbido)
-      daysLeftText =
-        diffDays === 1 ? "1 giorno rimasto" : `${diffDays} giorni rimasti`;
-      textColor = "text-amber-700";
+      stateLabel = `${diffDays} giorni rimasti`;
+      labelClass = "bg-amber-100 text-amber-800";
     } else {
-      daysLeftText =
-        diffDays === 1 ? "1 giorno rimasto" : `${diffDays} giorni rimasti`;
-      textColor = "text-ios-gray";
+      stateLabel = `${diffDays} giorni rimasti`;
+      labelClass = "bg-slate-100 text-slate-700";
     }
+  } else {
+    stateLabel = "Routine";
+    labelClass = "bg-blue-50 text-blue-700";
   }
 
   return (
-    <div
+    <article
       onClick={() => onInfo(deadline)}
-      className={`group relative p-8 rounded-ios-card shadow-ios-card backdrop-blur-sm ${statusColor} border border-gray-100 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 ease-out`}
+      className="group cursor-pointer rounded-[2rem] border border-[rgba(60,60,67,0.12)] bg-white p-6 shadow-ios-card transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_-25px_rgba(0,0,0,0.18)]"
     >
-      {/* 1. HEADER (Titolo) */}
-      <div className="mb-6 pr-10">
-        <p className="text-ios-gray/70 font-semibold uppercase tracking-widest text-[9px] mb-1">
-          {deadline.type === "long-term" ? "Lungo Termine" : "Giornaliera"}
-        </p>
-        <h4 className="text-2xl font-bold text-black tracking-tight leading-tight group-hover:text-ios-blue transition-colors">
-          {deadline.title}
-        </h4>
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-3">
+          <p className="text-xs uppercase tracking-[0.28em] text-slate-500">
+            {deadline.type === "daily" ? "Promemoria giornaliero" : "Scadenza"}
+          </p>
+          <h3 className="text-xl font-semibold text-slate-950">{deadline.title}</h3>
+          <p className="text-sm leading-6 text-slate-600 line-clamp-2">{deadline.notes || "Nessuna descrizione aggiuntiva."}</p>
+        </div>
+
+        <div className="flex flex-col gap-3 items-end">
+          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${labelClass}`}>
+            {stateLabel}
+          </span>
+          <div className="rounded-3xl bg-slate-100 px-3 py-2 text-sm text-slate-700">
+            {deadline.type === "daily" ? deadline.notificationTime?.slice(0, 5) ?? "08:00" : new Date(deadline.date).toLocaleDateString("it-IT", { day: "2-digit", month: "short", year: "numeric" })}
+          </div>
+        </div>
       </div>
 
-      {/* 2. BODY (Data/Orario e Badge) */}
-      <div className="flex items-end justify-between gap-4 mt-auto">
-        {deadline.type === "daily" ? (
-          /* --- VISTA GIORNALIERA --- */
-          <div className="flex flex-col animate-in fade-in duration-500">
-            <p className="text-ios-blue font-bold text-[10px] uppercase tracking-wider mb-1">
-              Ogni giorno alle:
-            </p>
-            <div className="flex items-center gap-2 text-ios-blue">
-              <span className="text-xl">⏰</span>
-              <p className="text-2xl font-black tracking-tight">
-                {deadline.notificationTime?.slice(0, 5) || "08:00"}
-              </p>
-            </div>
-          </div>
-        ) : (
-          /* --- VISTA SCADENZA STANDARD --- */
-          <div className="flex flex-col">
-            <p className="text-ios-gray font-semibold text-xs mb-1">
-              Scade il:
-            </p>
-            <div className="flex items-center gap-2">
-              <span className="text-xl">📅</span>
-              <p className="text-xl font-extrabold text-black/80 tracking-tight">
-                {new Date(deadline.date).toLocaleDateString("it-IT", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                })}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Badge Dinamico: lo mostriamo solo se NON è giornaliero */}
-        {deadline.type !== "daily" && (
-          <div
-            className={`px-4 py-1.5 rounded-full text-sm font-bold shadow-sm ${
-              statusColor === "bg-red-50/95"
-                ? "bg-ios-red/10"
-                : statusColor === "bg-amber-50/95"
-                  ? "bg-amber-100"
-                  : "bg-gray-100"
-            } ${textColor}`}
-          >
-            {daysLeftText}
-          </div>
-        )}
-
-        {/* Se vuoi un badge anche per le giornaliere, potresti metterne uno "Attivo" */}
-        {deadline.type === "daily" && (
-          <div className="px-4 py-1.5 rounded-full text-sm font-bold bg-blue-50 text-ios-blue shadow-sm">
-            Routine
-          </div>
-        )}
-      </div>
-
-      {/* 3. AZIONI (Pulsanti che appaiono all'hover) */}
-      <div className="absolute top-6 right-6 flex flex-col gap-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
-        {/* Pulsante Modifica (Matita) */}
+      <div className="mt-6 flex items-center justify-between gap-3 opacity-0 transition duration-300 group-hover:opacity-100">
         <button
-          onClick={(e) => {
-            e.stopPropagation();
+          onClick={(event) => {
+            event.stopPropagation();
             onEdit(deadline);
           }}
-          className="bg-white/90 p-3 rounded-full shadow-lg border border-gray-100 text-ios-gray hover:bg-ios-blue hover:text-white hover:scale-110 active:scale-95 transition-all"
-          title="Modifica"
+          className="inline-flex items-center gap-2 rounded-[1.5rem] border border-[rgba(60,60,67,0.12)] bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="w-5 h-5"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-            />
-          </svg>
+          <span>Modifica</span>
         </button>
 
-        {/* Pulsante Elimina (Cestino) */}
         <button
-          onClick={(e) => {
-            e.stopPropagation(); // <--- FERMA LA PROPAGAZIONE QUI
+          onClick={(event) => {
+            event.stopPropagation();
             onDelete(deadline.id);
           }}
-          className="bg-white/90 p-3 rounded-full shadow-lg border border-gray-100 text-ios-gray hover:bg-ios-red hover:text-white hover:scale-110 active:scale-95 transition-all"
-          title="Elimina"
+          className="inline-flex items-center gap-2 rounded-[1.5rem] bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
         >
-          <Image
-            src="/icons8-rimuovere.svg"
-            alt="Logo"
-            width={20}
-            height={20}
-          />
+          <Image src="/icons8-rimuovere.svg" alt="Elimina" width={16} height={16} />
+          <span>Elimina</span>
         </button>
       </div>
-    </div>
+    </article>
   );
 }

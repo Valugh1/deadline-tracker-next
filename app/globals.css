@@ -1,79 +1,206 @@
 ﻿@import "tailwindcss";
 
-@theme inline {
-  /* Font Geist (Standard Next.js) */
+:root {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* --- TAVOLOZZA COLORI APPLE --- */
-  --color-ios-blue: #007AFF;
-  --color-ios-blue-hover: #0063CC;
-  --color-ios-red: #FF3B30;
-  --color-ios-green: #34C759;
-  --color-ios-gray: #8E8E93;
-  --color-ios-label-gray: #bbc2e2;
-  --color-ios-background: #F2F2F7;
+  --color-ios-surface: #ffffff;
+  --color-ios-surface-muted: #f3f3f7;
+  --color-ios-background: #f2f2f7;
+  --color-ios-border: rgba(60, 60, 67, 0.12);
+  --color-ios-border-strong: rgba(60, 60, 67, 0.18);
+  --color-ios-text: #1c1c1e;
+  --color-ios-muted: #6e6e73;
+  --color-ios-placeholder: #9a9a9f;
+  --color-ios-blue: #007aff;
+  --color-ios-blue-soft: #e8f3ff;
+  --color-ios-green: #34c759;
+  --color-ios-red: #ff3b30;
+  --color-ios-yellow: #ffd60a;
 
-  /* --- RAGGI E OMBRE --- */
-  --radius-ios-card: 2.5rem;
-  --radius-ios-modal: 3rem;
-  
-  --shadow-ios-card: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
-  --shadow-ios-modal: 0 20px 50px -10px rgba(0, 0, 0, 0.2);
+  --radius-ios-sm: 1rem;
+  --radius-ios-md: 1.5rem;
+  --radius-ios-lg: 2rem;
+  --radius-ios-xl: 2.5rem;
+
+  --shadow-ios-card: 0 18px 40px -22px rgba(0, 0, 0, 0.16);
+  --shadow-ios-modal: 0 28px 60px -36px rgba(0, 0, 0, 0.24);
 }
 
 :root {
-  --background: #F2F2F7; /* Sfondo iOS Grigio Chiaro */
-  --foreground: #1D1D1F; /* Testo quasi nero Apple */
+  color-scheme: light;
+  background: var(--color-ios-background);
+  color: var(--color-ios-text);
+  font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Forziamo il dark mode a non cambiare i colori se non lo vogliamo, 
-   o lasciamo quelli di default di Next.js */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #F2F2F7; /* Per ora teniamolo chiaro come l'originale */
-    --foreground: #1D1D1F;
-  }
+html {
+  min-height: 100%;
+  background: radial-gradient(circle at top, rgba(0, 122, 255, 0.08), transparent 35%), var(--color-ios-background);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   margin: 0;
-  padding: 0;
+  min-height: 100vh;
+  background: transparent;
+  color: inherit;
 }
 
-/* Utility per le animazioni (Tailwind 4 le gestisce nativamente o via plugin) */
-@layer utilities {
-  .animate-zoom-in {
-    animation: zoomIn 0.3s ease-out;
-  }
-
-  .card-ios {
-    @apply rounded-[2rem] shadow-ios-card border border-black/5 bg-white;
-  }
-
-  .btn-ios {
-    @apply rounded-3xl bg-ios-blue text-white font-bold transition-all hover:bg-ios-blue-hover active:scale-[0.98];
-  }
-
-  .btn-ios-secondary {
-    @apply rounded-3xl border border-black/10 bg-white text-black font-semibold transition-all hover:bg-ios-background;
-  }
-
-  .input-ios {
-    @apply w-full rounded-3xl border border-black/10 bg-ios-background px-4 py-3 text-sm text-black placeholder:text-ios-label-gray focus:outline-none focus:ring-2 focus:ring-ios-blue/20;
-  }
-
-  .avatar-ios {
-    @apply inline-flex h-11 w-11 items-center justify-center rounded-full bg-ios-background text-sm font-bold text-ios-blue;
-  }
+* {
+  box-sizing: border-box;
 }
 
-@keyframes zoomIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+body::selection {
+  background: rgba(0, 122, 255, 0.18);
+}
+
+.ios-card {
+  border-radius: 2rem;
+  border: 1px solid var(--color-ios-border);
+  background: var(--color-ios-surface);
+  box-shadow: var(--shadow-ios-card);
+}
+
+.ios-card-strong {
+  border-radius: 2rem;
+  border: 1px solid var(--color-ios-border-strong);
+  background: var(--color-ios-surface);
+  box-shadow: var(--shadow-ios-card);
+}
+
+.ios-surface {
+  border-radius: 1.75rem;
+  background: var(--color-ios-surface);
+  border: 1px solid var(--color-ios-border);
+}
+
+.ios-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1.5rem;
+  background: var(--color-ios-blue);
+  padding: 0.75rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.ios-btn:hover {
+  background: #0065e0;
+}
+
+.ios-btn:active {
+  transform: translateY(1px);
+}
+
+.ios-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1.5rem;
+  border: 1px solid var(--color-ios-border-strong);
+  background: white;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-ios-text);
+  transition: background 0.2s ease;
+}
+
+.ios-btn-secondary:hover {
+  background: var(--color-ios-surface-muted);
+}
+
+.ios-input,
+.ios-textarea,
+.ios-select {
+  width: 100%;
+  border-radius: 1.5rem;
+  border: 1px solid var(--color-ios-border);
+  background: var(--color-ios-surface);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: var(--color-ios-text);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ios-input::placeholder,
+.ios-textarea::placeholder {
+  color: var(--color-ios-placeholder);
+}
+
+.ios-input:focus,
+.ios-textarea:focus,
+.ios-select:focus {
+  border-color: var(--color-ios-blue);
+  box-shadow: 0 0 0 6px rgba(0, 122, 255, 0.12);
+}
+
+.ios-textarea {
+  min-height: 120px;
+  resize: none;
+}
+
+.ios-field-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-ios-text);
+}
+
+.ios-field-note {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--color-ios-muted);
+}
+
+.ios-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(12px);
+}
+
+.ios-modal-panel {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 50;
+  width: min(92vw, 560px);
+  transform: translate(-50%, -50%);
+  border-radius: 2.25rem;
+  border: 1px solid rgba(60, 60, 67, 0.14);
+  background: white;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-ios-modal);
+}
+
+.ios-modal-close {
+  display: inline-flex;
+  height: 2.5rem;
+  width: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--color-ios-surface-muted);
+  color: var(--color-ios-text);
+  transition: background 0.2s ease;
+}
+
+.ios-modal-close:hover {
+  background: var(--color-ios-surface);
 }

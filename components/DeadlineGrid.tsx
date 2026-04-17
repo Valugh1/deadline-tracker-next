@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import DeadlineCard, { Deadline } from './DeadlineCard';
@@ -8,98 +8,61 @@ interface DeadlineGridProps {
   onRefresh: () => void;
   onEdit: (deadline: Deadline) => void;
   onInfo: (deadline: Deadline) => void;
-
 }
 
 export default function DeadlineGrid({ deadlines, onRefresh, onEdit, onInfo }: DeadlineGridProps) {
-  // Stato per decidere quale tab visualizzare
   const [activeView, setActiveView] = useState<'long-term' | 'daily'>('long-term');
+  const filteredDeadlines = deadlines.filter((deadline) => deadline.type === activeView);
 
-  // Funzione per eliminare una scadenza dal database
   const handleDelete = async (id: number) => {
-    if (confirm("Vuoi eliminare questa scadenza definitivamente?")) {
-      try {
-        const response = await fetch(`/api/deadlines?id=${id}`, { 
-          method: 'DELETE' 
-        });
-        if (response.ok) {
-          onRefresh(); // Ricarica la lista dal DB dopo l'eliminazione
-        }
-      } catch (error) {
-        console.error("Errore durante l'eliminazione:", error);
-      }
+    if (!confirm('Eliminare questa scadenza?')) return;
+    try {
+      const response = await fetch(`/api/deadlines?id=${id}`, { method: 'DELETE' });
+      if (response.ok) onRefresh();
+    } catch (error) {
+      console.error('Errore durante l\'eliminazione:', error);
     }
   };
 
-  
-
-  // Filtriamo le scadenze in base al tipo selezionato nello switch
-  const filteredDeadlines = deadlines.filter(d => d.type === activeView);
-
   return (
-    <section className="w-full max-w-[1800px] mx-auto">
-      
-      {/* --- Segmented control e titolo --- */}
-      <div className="flex justify-center mb-12">
-        <div className="bg-gray-200/50 p-1 rounded-2xl flex relative w-full max-w-md backdrop-blur-sm border border-white/20">
-          {/* Sfondo animato dello switch */}
-          <div 
-            className={`absolute top-1 bottom-1 w-[49%] bg-white rounded-xl shadow-sm transition-all duration-300 ease-out z-0 ${
-              activeView === 'daily' ? 'translate-x-[102%]' : 'translate-x-0'
-            }`}
-          />
-          
-          <button
-            onClick={() => setActiveView('long-term')}
-            className={`flex-1 py-3 text-sm font-bold z-10 transition-colors duration-200 ${
-              activeView === 'long-term' ? 'text-ios-blue' : 'text-gray-500'
-            }`}
-          >
-            📅 Lungo Termine
-          </button>
-          
-          <button
-            onClick={() => setActiveView('daily')}
-            className={`flex-1 py-3 text-sm font-bold z-10 transition-colors duration-200 ${
-              activeView === 'daily' ? 'text-ios-blue' : 'text-gray-500'
-            }`}
-          >
-            ☀️ Giornaliere
-          </button>
+    <section className="space-y-6">
+      <div className="rounded-[2rem] border border-[rgba(60,60,67,0.12)] bg-white p-4 shadow-ios-card">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Filtro</p>
+            <h2 className="mt-2 text-xl font-semibold text-slate-950">Visualizza le tue scadenze</h2>
+          </div>
+          <div className="inline-flex rounded-[1.5rem] bg-slate-100 p-1">
+            <button
+              type="button"
+              onClick={() => setActiveView('long-term')}
+              className={`rounded-[1.5rem] px-4 py-2 text-sm font-semibold transition ${activeView === 'long-term' ? 'bg-white text-slate-950 shadow-[0_10px_20px_-15px_rgba(0,0,0,0.18)]' : 'text-slate-500 hover:bg-slate-200'}`}
+            >
+              Scadenze
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveView('daily')}
+              className={`rounded-[1.5rem] px-4 py-2 text-sm font-semibold transition ${activeView === 'daily' ? 'bg-white text-slate-950 shadow-[0_10px_20px_-15px_rgba(0,0,0,0.18)]' : 'text-slate-500 hover:bg-slate-200'}`}
+            >
+              Giornaliere
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* TITOLO DINAMICO */}
-      <div className="mb-8 px-4 flex justify-between items-end">
-        <h3 className="text-xl font-bold text-black/80">
-          {activeView === 'long-term' ? 'Scadenze Annuali e Mensili' : 'Impegni di Oggi'}
-        </h3>
-        <span className="text-ios-gray text-sm font-medium">
-          {filteredDeadlines.length} {filteredDeadlines.length === 1 ? 'elemento' : 'elementi'}
-        </span>
-      </div>
-
-      {/* GRIGLIA DELLE CARD */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 md:gap-8">
-        {filteredDeadlines.map((d) => (
-          <DeadlineCard 
-            key={d.id} 
-            deadline={d} 
-            onDelete={handleDelete}
-            onEdit={onEdit}
-            onInfo={onInfo}
-          />
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        {filteredDeadlines.map((deadline) => (
+          <DeadlineCard key={deadline.id} deadline={deadline} onDelete={handleDelete} onEdit={onEdit} onInfo={onInfo} />
         ))}
-
-        {/* MESSAGGIO SE LA CATEGORIA È VUOTA */}
-        {filteredDeadlines.length === 0 && (
-          <div className="col-span-full py-24 text-center bg-white/40 rounded-ios-card border-2 border-dashed border-gray-200">
-            <p className="text-ios-gray italic text-lg">
-              Ottimo! Nessuna scadenza in sospeso qui.
-            </p>
-          </div>
-        )}
       </div>
+
+      {filteredDeadlines.length === 0 && (
+        <div className="rounded-[2rem] border border-dashed border-[rgba(60,60,67,0.12)] bg-white p-8 text-center text-slate-600 shadow-ios-card">
+          <p className="text-lg font-semibold">Nessuna scadenza in questa categoria.</p>
+          <p className="mt-2 text-sm text-slate-500">Aggiungi una nuova scadenza per iniziare.</p>
+        </div>
+      )}
     </section>
   );
 }

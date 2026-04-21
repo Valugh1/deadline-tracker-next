@@ -1,3 +1,5 @@
+import { sendDeadlinePushNotification } from './push-server';
+
 export interface DeadlineNotification {
   id: number;
   title: string;

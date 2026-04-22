@@ -6,7 +6,6 @@ import DeadlineModal from "@/components/DeadlineModal";
 import DeadlineGrid from "@/components/DeadlineGrid";
 import { Deadline } from "@/components/DeadlineCard";
 import InfoModal from "@/components/InfoModal";
-import { scheduleDeadlineNotifications } from "@/lib/notifications";
 
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,13 +28,6 @@ export default function Home() {
   useEffect(() => {
     fetchDeadlines();
   }, []);
-
-  useEffect(() => {
-    console.log(deadlines);
-    if (deadlines.length > 0) {
-      scheduleDeadlineNotifications(deadlines);
-    }
-  }, [deadlines]);
 
   const handleOpenInfo = (deadline: Deadline) => {
     setSelectedDeadline(deadline);

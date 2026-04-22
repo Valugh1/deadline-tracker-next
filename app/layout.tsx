@@ -38,13 +38,6 @@ export default function RootLayout({
         <NeonAuthProvider>{children}</NeonAuthProvider>
         <ServiceWorkerRegister />
         <PushNotificationSubscriber />
-        //SOLO debug
-        <script
-          src="https://cdn.jsdelivr.net/npm/eruda"
-          onLoad={() => {
-            (window as any).eruda.init();
-          }}
-        ></script>
       </body>
     </html>
   );

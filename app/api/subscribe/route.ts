@@ -16,21 +16,6 @@ export async function POST(request: NextRequest) {
     // In production, you should verify the user session
     const userId = 'pwa-user'; // Default for PWA users
 
-    // Check if table exists, create if not
-    try {
-      await sql`CREATE TABLE IF NOT EXISTS push_subscriptions (
-        id SERIAL PRIMARY KEY,
-        user_id VARCHAR(255) NOT NULL,
-        endpoint TEXT NOT NULL UNIQUE,
-        auth VARCHAR(255) NOT NULL,
-        p256dh VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )`;
-    } catch (e) {
-      // Table might already exist
-    }
-
     // Store or update subscription
     const { auth = '', p256dh = '' } = subscription.keys || {};
 

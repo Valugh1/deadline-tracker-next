@@ -23,7 +23,11 @@ export const metadata: Metadata = {
   viewport: "width=device-width, initial-scale=1", // PWA viewport
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html
       lang="en"
@@ -34,6 +38,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <NeonAuthProvider>{children}</NeonAuthProvider>
         <ServiceWorkerRegister />
         <PushNotificationSubscriber />
+        //SOLO debug
+        <script
+          src="https://cdn.jsdelivr.net/npm/eruda"
+          onLoad={() => {
+            (window as any).eruda.init();
+          }}
+        ></script>
       </body>
     </html>
   );

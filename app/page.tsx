@@ -31,6 +31,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    console.log(deadlines);
     if (deadlines.length > 0) {
       scheduleDeadlineNotifications(deadlines);
     }

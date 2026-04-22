@@ -87,7 +87,8 @@ export async function scheduleDeadlineNotifications(deadlines: DeadlineNotificat
 
   const granted = await ensurePermission();
   if (!granted) return;
-
+  //test
+  new Notification('Test Immediato', { body: buildSummaryBody(deadlines) });
   // Clear existing timers
   Object.values(timers).forEach(clearTimeout);
   Object.values(timers).forEach(clearInterval);

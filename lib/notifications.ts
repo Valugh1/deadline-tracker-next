@@ -17,9 +17,17 @@ export interface Deadline {
  */
 function getCurrentTimeFormatted(): string {
   const now = new Date();
-  const hours = String(now.getUTCHours()).padStart(2, '0');
-  const minutes = String(now.getUTCMinutes()).padStart(2, '0');
-  return `${hours}:${minutes}`;
+  
+  // Formatta l'ora attuale usando il fuso orario italiano
+  const italianTime = now.toLocaleString("it-IT", {
+    timeZone: "Europe/Rome",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  // italianTime restituirà qualcosa come "09:00" o "15:30"
+  return italianTime;
 }
 
 /**

@@ -6,14 +6,11 @@ import { checkAndSendAllNotifications } from '@/lib/notifications';
  * Called every minute by Vercel Cron
  */
 export async function GET(request: NextRequest) {
-    console.log("--- CRON TRIGGERED ---");
   try {
     // Verify the request is from Vercel Cron (optional in development)
+    
     const authHeader = request.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
-
-    console.log("Auth Header:", authHeader ? "Presente" : "Mancante");
-    console.log("Secret configurato:", cronSecret ? "Sì" : "No");
     
     if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json(

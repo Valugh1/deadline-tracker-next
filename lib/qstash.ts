@@ -1,5 +1,3 @@
-import { env } from 'process';
-
 interface QStashSchedule {
   scheduleId: string;
   destination: string;
@@ -42,6 +40,8 @@ function getQStashUrl(): string {
   if (!url) {
     throw new Error('QSTASH_URL environment variable is required');
   }
+  // ELIMINARE 
+  console.log(`[QStash] Using QStash URL: ${url}`);
   return url;
 }
 
@@ -64,7 +64,8 @@ export async function scheduleNotificationJob(userId: string, notificationTime: 
   const cron = `0 ${minutes} ${utcHours} * * *`; // Every day at specified UTC time
 
   const destination = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/cron-notifications`;
-console.log(`[QStash] Target destination URL: ${destination}`);
+  //ELIMINARE 
+  console.log(`[QStash] Target destination URL: ${destination}`);
   const body: CreateScheduleRequest = {
     destination,
     cron,

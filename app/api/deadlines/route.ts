@@ -1,6 +1,7 @@
 import { sql } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth/server';
+import { syncQStashJobsForUser } from '@/lib/notification-job-sync';
 
 // Helper to get current user or return 401
 async function getCurrentUserId() {
@@ -50,6 +51,15 @@ export async function POST(request: Request) {
       INSERT INTO deadlines (user_id, title, date, days_before, "type", notes, notification_time)
       VALUES (${userId}, ${title}, ${date || "9999-01-01"}::date, ${daysBefore}, ${type}, ${notes || ""}, ${notificationTime || "08:00"});
     `;
+
+    // Sync QStash jobs after creating deadline
+    try {
+      await syncQStashJobsForUser(userId);
+    } catch (syncError) {
+      console.error('Failed to sync QStash jobs after deadline creation:', syncError);
+      // Don't fail the request if job sync fails
+    }
+
     return NextResponse.json({ message: "Scadenza salvata" }, { status: 201 });
   } catch (error) {
     console.error("Errore SQL POST:", error);
@@ -68,6 +78,15 @@ export async function DELETE(request: Request) {
 
   try {
     await sql`DELETE FROM deadlines WHERE id = ${id} AND user_id = ${userId};`;
+
+    // Sync QStash jobs after deleting deadline
+    try {
+      await syncQStashJobsForUser(userId);
+    } catch (syncError) {
+      console.error('Failed to sync QStash jobs after deadline deletion:', syncError);
+      // Don't fail the request if job sync fails
+    }
+
     return NextResponse.json({ message: "Eliminata!" });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });
@@ -99,6 +118,14 @@ export async function PUT(request: Request) {
 
     if (result.rowCount === 0) {
       return NextResponse.json({ error: "Scadenza non trovata" }, { status: 404 });
+    }
+
+    // Sync QStash jobs after updating deadline
+    try {
+      await syncQStashJobsForUser(userId);
+    } catch (syncError) {
+      console.error('Failed to sync QStash jobs after deadline update:', syncError);
+      // Don't fail the request if job sync fails
     }
 
     return NextResponse.json({ message: "Aggiornata!", deadline: result.rows[0] });

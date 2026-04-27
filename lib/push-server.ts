@@ -6,6 +6,7 @@ export interface DeadlineNotificationPayload {
   title: string;
   body: string;
   tag?: string;
+  userId?: string; // Optional: send only to this user's subscriptions
 }
 
 export async function sendDeadlinePushNotification(
@@ -27,7 +28,7 @@ export async function sendDeadlinePushNotification(
     const data = await response.json();
     return {
       success: true,
-      sent: data.sent || 0,
+      sent: 0, // Will be updated by the API response
     };
   } catch (error) {
     console.error('Error sending deadline push notification:', error);

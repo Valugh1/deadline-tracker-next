@@ -11,7 +11,7 @@ webpush.setVapidDetails(
 
 export async function POST(request: NextRequest) {
   try {
-    const { title, body, tag = 'deadline-notification' } = await request.json();
+    const { title, body, tag = 'deadline-notification', userId } = await request.json();
 
     if (!title || !body) {
       return NextResponse.json(
@@ -20,13 +20,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch all subscriptions
-    const result = await sql`SELECT * FROM push_subscriptions`;
+    // Fetch subscriptions - filter by userId if provided
+    let query = sql`SELECT * FROM push_subscriptions`;
+    if (userId) {
+      query = sql`SELECT * FROM push_subscriptions WHERE user_id = ${userId}`;
+    }
+    const result = await query;
     const subscriptions = result.rows;
 
     if (subscriptions.length === 0) {
       return NextResponse.json(
-        { success: true, sent: 0, message: 'No subscribers found' },
+        { success: true, sent: 0, message: `No subscribers found${userId ? ` for user ${userId}` : ''}` },
         { status: 200 }
       );
     }

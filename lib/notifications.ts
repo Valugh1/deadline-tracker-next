@@ -76,21 +76,28 @@ function formatLongTermDeadline(deadline: Deadline): string {
 
 /**
  * Send daily notifications for deadlines that match the current time
+ * @param userId - Optional: only send for this user
+ * @param targetTime - Optional: only send for this specific time (HH:MM format)
  */
-export async function checkAndSendDailyNotifications(): Promise<void> {
+export async function checkAndSendDailyNotifications(userId?: string, targetTime?: string): Promise<void> {
   try {
-    const currentTime = getCurrentTimeFormatted();
+    const currentTime = targetTime || getCurrentTimeFormatted();
 
-    // Fetch all daily deadlines that match the current notification time
+    // Build query based on parameters
+    const whereConditions = ["type = 'daily'", "notification_time = ${currentTime}"];
+    if (userId) {
+      whereConditions.push("user_id = ${userId}");
+    }
+    const whereClause = whereConditions.join(' AND ');
+
     const { rows: dailyDeadlines } = await sql<Deadline>`
-      SELECT * FROM deadlines 
-      WHERE type = 'daily' 
-        AND notification_time = ${currentTime}
+      SELECT * FROM deadlines
+      WHERE ${whereClause}
       ORDER BY title ASC
     `;
-    console.log(`[Daily Notifications] Found ${dailyDeadlines.length} deadlines for time ${currentTime}`);
+    console.log(`[Daily Notifications] Found ${dailyDeadlines.length} deadlines for time ${currentTime}${userId ? ` (user: ${userId})` : ''}`);
     if (dailyDeadlines.length === 0) {
-      console.log(`[Daily Notifications] No deadlines to notify at ${currentTime}`);
+      console.log(`[Daily Notifications] No deadlines to notify at ${currentTime}${userId ? ` for user ${userId}` : ''}`);
       return;
     }
 
@@ -104,7 +111,7 @@ export async function checkAndSendDailyNotifications(): Promise<void> {
     }
 
     // Send notifications per user
-    for (const [userId, userDeadlines] of deadlinesByUser) {
+    for (const [userIdKey, userDeadlines] of deadlinesByUser) {
       const titles = userDeadlines.map(d => d.title).join(', ');
       const body = userDeadlines.length === 1
         ? `${userDeadlines[0].title} — è il momento del tuo promemoria giornaliero.`
@@ -113,10 +120,11 @@ export async function checkAndSendDailyNotifications(): Promise<void> {
       await sendDeadlinePushNotification({
         title: 'Promemoria giornaliero',
         body,
-        tag: `daily-${currentTime}`
+        tag: `daily-${currentTime}`,
+        userId: userIdKey // Send only to this user's subscriptions
       });
 
-      console.log(`[Daily Notifications] Sent to user ${userId}: ${titles}`);
+      console.log(`[Daily Notifications] Sent to user ${userIdKey}: ${titles}`);
     }
   } catch (error) {
     console.error('[Daily Notifications] Error:', error);
@@ -182,17 +190,4 @@ export async function checkAndSendLongTermNotifications(): Promise<void> {
   } catch (error) {
     console.error('[Long-term Notifications] Error:', error);
   }
-}
-
-/**
- * Main function to check and send all notifications
- * Called by the cron job
- */
-export async function checkAndSendAllNotifications(): Promise<void> {
-  console.log(`[Notifications] Checking at ${getCurrentTimeFormatted()} UTC`);
-  
-  await checkAndSendDailyNotifications();
-  await checkAndSendLongTermNotifications();
-  
-  console.log('[Notifications] Check completed');
 }

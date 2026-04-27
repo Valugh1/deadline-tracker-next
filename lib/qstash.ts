@@ -64,7 +64,7 @@ export async function scheduleNotificationJob(userId: string, notificationTime: 
   const cron = `0 ${minutes} ${utcHours} * * *`; // Every day at specified UTC time
 
   const destination = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/cron-notifications`;
-
+console.log(`[QStash] Target destination URL: ${destination}`);
   const body: CreateScheduleRequest = {
     destination,
     cron,

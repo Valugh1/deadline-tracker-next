@@ -15,9 +15,8 @@ export async function syncQStashJobsForUser(userId: string): Promise<void> {
       SELECT DISTINCT notification_time
       FROM deadlines
       WHERE user_id = ${userId}
-        AND type = 'daily'
-        AND notification_time IS NOT NULL
-        AND notification_time != ''
+      AND type = 'daily'
+      AND notification_time IS NOT NULL
       ORDER BY notification_time ASC
     `;
 

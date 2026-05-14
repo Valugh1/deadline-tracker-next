@@ -1,8 +1,7 @@
-const CACHE_NAME = 'deadline-tracker-v2'; // ← bump versione!
+const CACHE_NAME = 'deadline-tracker';
 const PRECACHE_URLS = [
   '/manifest.json',
   '/icons/icon-192.png',
-  // NON mettere '/' qui — l'HTML deve sempre venire dal network
 ];
 
 self.addEventListener('install', (event) => {
@@ -33,7 +32,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Cacha la risposta fresca per uso offline
+          // Cacha la risposta per uso offline
           const clone = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
           return response;

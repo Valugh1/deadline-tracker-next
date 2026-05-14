@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Deadline Tracker",
-  description: "A modern, mobile-first deadline app inspired by iOS",
+  description: "A modern, mobile-first deadline app",
   manifest: "/manifest.json", // PWA manifest link
   themeColor: "#007aff", // PWA theme color
   viewport: "width=device-width, initial-scale=1", // PWA viewport

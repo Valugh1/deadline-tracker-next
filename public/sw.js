@@ -1,17 +1,14 @@
-// public/sw.js
-const CACHE_NAME = 'deadline-tracker-v1';
-const urlsToCache = [
-  '/',
+const CACHE_NAME = 'deadline-tracker-v2'; // ← bump versione!
+const PRECACHE_URLS = [
   '/manifest.json',
-  // Add other static assets like CSS, JS, images
+  '/icons/icon-192.png',
+  // NON mettere '/' qui — l'HTML deve sempre venire dal network
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => {
-        return cache.addAll(urlsToCache);
-      })
+      .then((cache) => cache.addAll(PRECACHE_URLS))
       .then(() => self.skipWaiting())
   );
 });
@@ -20,33 +17,64 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
+        cacheNames
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => caches.delete(name))
       );
     }).then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', (event) => {
+  const { request } = event;
+
+  // Navigazione (pagine HTML) → Network First
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // Cacha la risposta fresca per uso offline
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          return response;
+        })
+        .catch(() => caches.match('/') || caches.match(request))
+    );
+    return;
+  }
+
+  // Asset Next.js con hash (_next/static/*) → Cache First (sono immutabili)
+  if (request.url.includes('/_next/static/')) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached;
+        return fetch(request).then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          return response;
+        });
+      })
+    );
+    return;
+  }
+
+  // Tutto il resto → Network First con fallback cache
   event.respondWith(
-    caches.match(event.request)
+    fetch(request)
       .then((response) => {
-        // Return cached version or fetch from network
-        return response || fetch(event.request);
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+        }
+        return response;
       })
-      .catch(() => {
-        // Return offline fallback if needed
-        return caches.match('/');
-      })
+      .catch(() => caches.match(request))
   );
 });
 
+// --- Push notifications ---
 self.addEventListener('push', (event) => {
   let data = {};
-  
   try {
     data = event.data ? event.data.json() : {};
   } catch (e) {
@@ -73,17 +101,14 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then((clientList) => {
-        // Check if app is already open
         for (let client of clientList) {
           if (client.url === '/' && 'focus' in client) {
             return client.focus();
           }
         }
-        // If not open, open a new window
         if (clients.openWindow) {
           return clients.openWindow('/');
         }

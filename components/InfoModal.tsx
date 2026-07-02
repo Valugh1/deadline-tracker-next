@@ -29,10 +29,11 @@ export default function InfoModal({ isOpen, onClose, deadline, onEdit, onDelete 
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-[1.75rem] bg-slate-50 p-4">
-            <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Data</p>
+            <p className="text-xs uppercase tracking-[0.28em] text-slate-500">{deadline.type === "daily" ? "Orario" : "Data"}</p>
             <p className="mt-2 text-base font-semibold text-slate-950">
-              {new Date(deadline.date).toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' })}
+            {deadline.type === "daily" ? deadline.notificationTime?.slice(0, 5) ?? "08:00" : new Date(deadline.date).toLocaleDateString("it-IT", { day: "2-digit", month: "short", year: "numeric" })}
             </p>
+
           </div>
           <div className="rounded-[1.75rem] bg-slate-50 p-4">
             <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Stato</p>
